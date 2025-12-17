@@ -18,7 +18,7 @@ export function NavHeader() {
                 {/* Desktop Navigation */}
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <img width="40" height="40" src="/favicon.svg" alt="Keystone Apparel Logo" />
+                        <img width="40" height="40" src="./favicon.svg" alt="Keystone Apparel Logo" />
                         <span className="hidden font-bold sm:inline-block">
                             Keystone Apparel
                         </span>

@@ -2,7 +2,6 @@ import * as React from "react"
 import { useState, useEffect, useMemo, useCallback } from 'react'
 
 import { ThemeProvider } from "@/components/theme-provider"
-import { ModeToggle } from "@/components/mode-toggle"
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from '@/components/ui/button'
