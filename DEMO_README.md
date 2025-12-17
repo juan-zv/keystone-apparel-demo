@@ -4,18 +4,13 @@ This is a **demo version** of the Keystone Apparel System, configured for demons
 
 ## Changes from Production Version
 
-### 1. **No Git Version Control**
-- The `.git` folder has been removed
-- This version has no connection to the production repository
-- You can initialize a new git repository if needed with `git init`
-
-### 2. **Local Storage Database**
+### 1. **Local Storage Database**
 - **No external database required** - all data is stored in browser localStorage
 - Database operations use a localStorage-based mock implementation
 - Data persists in the browser but is not synced across devices or browsers
 - **Note**: Clearing browser data will delete all stored information
 
-### 3. **Removed Dependencies**
+### 2. **Removed Dependencies**
 - No external database packages required
 - No environment variables needed for database connections
 
