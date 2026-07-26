@@ -617,7 +617,7 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                         <Switch
                             id="mobile-form-switch"
                             checked={activeMobileTab === "presale"}
-                            onCheckedChange={(checked) => setActiveMobileTab(checked ? "presale" : "sale")}
+                            onCheckedChange={(checked: boolean) => setActiveMobileTab(checked ? "presale" : "sale")}
                         />
                         <Label htmlFor="mobile-form-switch" className={`text-sm font-semibold cursor-pointer transition-colors ${activeMobileTab === "presale" ? "text-primary font-bold" : "text-muted-foreground"}`}>
                             Record Presale 😟
