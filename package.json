@@ -1,7 +1,7 @@
-{
   "name": "keystone-apparel-system",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
