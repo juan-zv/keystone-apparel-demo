@@ -38,8 +38,8 @@ export function NavHeader() {
               <img width="32" height="32" src="./favicon.svg" alt="Keystone Apparel" className="h-full w-full rounded-[6px] object-cover bg-background" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base tracking-tight text-foreground leading-none">Keystone</span>
-              <span className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase leading-tight">Apparel System</span>
+              <span className="font-bold text-base tracking-tight text-foreground leading-none">Keystone Apparel</span>
+              <span className="text-[10px] font-medium tracking-widest text-muted-foreground uppercase leading-tight">Sales System</span>
             </div>
           </Link>
 
