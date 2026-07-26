@@ -1,13 +1,13 @@
 "use client"
 
 import type { ColumnDef } from "@tanstack/react-table"
+import { formatCurrency } from "@/lib/labels"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type TotalSales = {
   id: string
   tshirts: string
   hoodies: string
+  stickers: string
   cogs: string
   revenue: string
   card: number
@@ -24,37 +24,25 @@ export const columns: ColumnDef<TotalSales>[] = [
     header: "Hoodies Sold",
   },
   {
+    accessorKey: "stickers",
+    header: "Stickers Sold",
+  },
+  {
     accessorKey: "cogs",
     header: "Total COGS",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("cogs"))
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
-      
-      return formatted
-    },
+    cell: ({ row }) => formatCurrency(parseFloat(row.getValue("cogs"))),
   },
   {
     accessorKey: "revenue",
     header: "Total Revenue",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("revenue"))
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
- 
-      return formatted
-    },
+    cell: ({ row }) => formatCurrency(parseFloat(row.getValue("revenue"))),
   },
   {
     accessorKey: "card",
-    header: "Total Card Transactions",
+    header: "Card Transactions",
   },
   {
     accessorKey: "cash",
-    header: "Total Cash Transactions",
+    header: "Cash Transactions",
   },
 ]

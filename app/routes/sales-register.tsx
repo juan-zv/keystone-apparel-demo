@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useMemo, useCallback } from "react"
-import { ThemeProvider } from "@/components/theme-provider"
+import { PageShell } from "@/components/page-shell"
 
 import {
     Card,
@@ -25,6 +25,7 @@ import { SelectGroup } from "@radix-ui/react-select"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 
 import * as z from "zod"
 import { Controller, useForm } from "react-hook-form"
@@ -46,7 +47,6 @@ import {
 
 import db from "@/lib/database"
 import type { Route } from "./+types/sales-register"
-import { NavHeader } from "@/components/nav-header"
 import { productTypes, colors, designs, sizes, transactionTypes, SELLERS, cogs } from "@/lib/product-data"
 
 export function meta({ }: Route.MetaArgs) {
@@ -101,6 +101,7 @@ const presaleFormSchema = z.object({
 })
 
 export default function SalesRegister({ params }: Route.ComponentProps) {
+    const [activeMobileTab, setActiveMobileTab] = React.useState<"sale" | "presale">("sale")
     const [isDialogOpen, setIsDialogOpen] = React.useState(false)
     const [isSuccessDialogOpen, setIsSuccessDialogOpen] = React.useState(false)
     const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -601,21 +602,39 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
     }
 
     return (
-        <ThemeProvider defaultTheme="dark">
-            <NavHeader />
-            <h1 className="text-2xl font-bold text-center my-4">Sales Tracker - DEMO version</h1>
+        <PageShell
+            title="Sales Tracker"
+            badge="Demo · local storage"
+            description="Log each transaction right after the sale so inventory and reports stay accurate."
+        >
+            <div className="w-full max-w-6xl mx-auto space-y-4">
+                {/* Mobile View Switch Toggle */}
+                <div className="flex lg:hidden items-center justify-between p-3.5 bg-card/90 rounded-xl border border-border/60 shadow-xs">
+                    <span className={`text-sm font-bold transition-colors ${activeMobileTab === "sale" ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                        Record Sale 🤩
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            id="mobile-form-switch"
+                            checked={activeMobileTab === "presale"}
+                            onCheckedChange={(checked) => setActiveMobileTab(checked ? "presale" : "sale")}
+                        />
+                        <Label htmlFor="mobile-form-switch" className={`text-sm font-semibold cursor-pointer transition-colors ${activeMobileTab === "presale" ? "text-primary font-bold" : "text-muted-foreground"}`}>
+                            Record Presale 😟
+                        </Label>
+                    </div>
+                </div>
 
-            <Card className="w-[90%] max-w-[500px] mx-auto my-4">
-                <Collapsible>
-                    <CardHeader>
-                        <CollapsibleTrigger className="w-full">
-                            <CardTitle className="text-lg font-semibold text-left">Record Presale 😟</CardTitle>
-                        </CollapsibleTrigger>
-                    </CardHeader>
-                    <CollapsibleContent>
-                        <CardHeader className="pt-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-start">
+                    {/* Record Presale Form Card */}
+                    <Card className={`border-border/60 bg-card/80 shadow-sm ${activeMobileTab !== "presale" ? "hidden lg:block" : ""}`}>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-bold flex items-center justify-between">
+                                <span>Record Presale 😟</span>
+                                <span className="text-xs font-normal text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">Pre-Order</span>
+                            </CardTitle>
                             <CardDescription>
-                                Please use this form to record presale transactions.
+                                Log advance orders to fulfill later. They copy to Sales when marked sold.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -1004,26 +1023,31 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 </FieldGroup>
                             </form>
                         </CardContent>
-                        <CardFooter className="flex flex-col justify-center items-center gap-3 px-4">
+                        <CardFooter className="flex flex-col justify-center items-center gap-3 px-4 pt-2">
                             <Button
                                 type="submit"
                                 form="presale-form"
-                                variant="destructive"
-                            >Submit</Button>
-                            <Button variant="ghost" onClick={() => presaleForm.reset()}>Cancel</Button>
-                            <CardDescription>v0.2.0 | Made by Juansito with a LOT of love ❤️ ©2025</CardDescription>
+                                size="lg"
+                                className="w-full font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-md transition-transform active:scale-[0.99] cursor-pointer"
+                            >
+                                Submit Presale Order
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => presaleForm.reset()} className="text-xs text-muted-foreground">Reset Form</Button>
+                            <CardDescription className="text-xs text-muted-foreground/70">v0.2.1 · Presale Management</CardDescription>
                         </CardFooter>
-                    </CollapsibleContent>
-                </Collapsible>
-            </Card>
+                    </Card>
 
-            <Card className="w-[90%] max-w-[500px] mx-auto my-4">
-                <CardHeader>
-                    <CardTitle className="text-lg font-semibold">Record Sale 🤩</CardTitle>
-                    <CardDescription>
-                        Please use this after every transaction so that we can keep track of our sales and inventory :)
-                    </CardDescription>
-                </CardHeader>
+                    {/* Record Sale Form Card */}
+                    <Card className={`border-border/60 bg-card/80 shadow-sm ${activeMobileTab !== "sale" ? "hidden lg:block" : ""}`}>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-bold flex items-center justify-between">
+                                <span>Record Sale 🤩</span>
+                                <span className="text-xs font-normal text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">Direct POS</span>
+                            </CardTitle>
+                            <CardDescription>
+                                Log completed sales to update inventory & reports immediately.
+                            </CardDescription>
+                        </CardHeader>
                 <CardContent>
                     <form id="sales-form" onSubmit={form.handleSubmit(handleFormSubmission)}>
                         <FieldGroup>
@@ -1032,22 +1056,28 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
-                                        <FieldLabel>Type of Product Sold</FieldLabel>
-                                        <Select
-                                            name={field.name}
-                                            value={field.value}
-                                            onValueChange={field.onChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a product type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    {productTypes.map((type) => (
-                                                        <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                        <FieldLabel className="text-sm font-semibold">Type of Product Sold</FieldLabel>
+                                        <div className="grid grid-cols-3 gap-2 mt-1">
+                                            {[
+                                                { label: "T-Shirt", value: "tshirt", icon: "👕" },
+                                                { label: "Hoodie", value: "hoodie", icon: "🧥" },
+                                                { label: "Sticker", value: "sticker", icon: "🏷️" },
+                                            ].map((type) => (
+                                                <button
+                                                    key={type.value}
+                                                    type="button"
+                                                    onClick={() => field.onChange(type.value)}
+                                                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                                                        field.value === type.value
+                                                            ? "border-primary bg-primary/10 text-primary font-bold shadow-xs scale-[1.02]"
+                                                            : "border-border/60 bg-muted/30 hover:border-border hover:bg-muted/60 text-muted-foreground"
+                                                    }`}
+                                                >
+                                                    <span className="text-2xl mb-1">{type.icon}</span>
+                                                    <span className="text-xs">{type.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
                                         {fieldState.error && <p className="text-sm text-red-600 mt-1">{fieldState.error.message}</p>}
                                     </Field>
                                 )}
@@ -1057,14 +1087,40 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
-                                        <FieldLabel>Color</FieldLabel>
+                                        <FieldLabel className="text-sm font-semibold">Color</FieldLabel>
+                                        {productType !== "sticker" && (
+                                            <div className="flex flex-wrap gap-2 my-1.5">
+                                                {[
+                                                    { value: "black", label: "Black", bg: "bg-zinc-900 border-zinc-700" },
+                                                    { value: "grey", label: "Grey", bg: "bg-zinc-500 border-zinc-400" },
+                                                    { value: "green", label: "Green", bg: "bg-emerald-600 border-emerald-500" },
+                                                    { value: "brown", label: "Brown", bg: "bg-amber-900 border-amber-800" },
+                                                    { value: "blue", label: "Blue", bg: "bg-blue-600 border-blue-500" },
+                                                    { value: "pink", label: "Pink", bg: "bg-pink-500 border-pink-400" },
+                                                ].map((c) => (
+                                                    <button
+                                                        key={c.value}
+                                                        type="button"
+                                                        onClick={() => field.onChange(c.value)}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+                                                            field.value === c.value
+                                                                ? "ring-2 ring-primary ring-offset-2 border-primary bg-primary/10 font-bold"
+                                                                : "border-border/60 hover:bg-muted/50 text-muted-foreground"
+                                                        }`}
+                                                    >
+                                                        <span className={`h-3 w-3 rounded-full border shadow-2xs ${c.bg}`} />
+                                                        {c.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                         <Select
                                             name={field.name}
                                             value={field.value}
                                             onValueChange={field.onChange}
                                             disabled={productType === "sticker"}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="mt-1">
                                                 <SelectValue placeholder={productType === "sticker" ? "N/A for stickers" : "Select a color"} />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1084,7 +1140,7 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
-                                        <FieldLabel>Design</FieldLabel>
+                                        <FieldLabel className="text-sm font-semibold">Design</FieldLabel>
                                         <Select
                                             name={field.name}
                                             value={field.value}
@@ -1110,14 +1166,32 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
-                                        <FieldLabel>Size</FieldLabel>
+                                        <FieldLabel className="text-sm font-semibold">Size</FieldLabel>
+                                        {productType !== "sticker" && (
+                                            <div className="grid grid-cols-6 gap-1.5 my-1.5">
+                                                {sizes.map((s) => (
+                                                    <button
+                                                        key={s.value}
+                                                        type="button"
+                                                        onClick={() => field.onChange(s.value)}
+                                                        className={`py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                                            field.value === s.value
+                                                                ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                                                                : "border-border/60 hover:bg-muted text-muted-foreground"
+                                                        }`}
+                                                    >
+                                                        {s.label.replace("Small", "S").replace("Medium", "M").replace("Large", "L")}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                         <Select
                                             name={field.name}
                                             value={field.value}
                                             onValueChange={field.onChange}
                                             disabled={productType === "sticker"}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="mt-1">
                                                 <SelectValue placeholder={productType === "sticker" ? "N/A for stickers" : "Select a size"} />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1137,23 +1211,26 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                 control={form.control}
                                 render={({ field, fieldState }) => (
                                     <Field>
-                                        <FieldLabel>Transaction Type</FieldLabel>
-                                        <Select
-                                            name={field.name}
-                                            value={field.value}
-                                            onValueChange={field.onChange}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a transaction type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    {transactionTypes.map((type) => (
-                                                        <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                        <FieldLabel className="text-sm font-semibold">Payment Method</FieldLabel>
+                                        <div className="grid grid-cols-2 gap-2 my-1">
+                                            {[
+                                                { label: "💳 Card", value: "card" },
+                                                { label: "💵 Cash", value: "cash" },
+                                            ].map((t) => (
+                                                <button
+                                                    key={t.value}
+                                                    type="button"
+                                                    onClick={() => field.onChange(t.value)}
+                                                    className={`py-2 px-3 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                                                        field.value === t.value
+                                                            ? "border-primary bg-primary/10 text-primary shadow-xs"
+                                                            : "border-border/60 hover:bg-muted text-muted-foreground"
+                                                    }`}
+                                                >
+                                                    {t.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                         {fieldState.error && <p className="text-sm text-red-600 mt-1">{fieldState.error.message}</p>}
                                     </Field>
                                 )}
@@ -1407,19 +1484,50 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                                     </Field>
                                 )}
                             />
+                        {/* Live POS Margin Summary Box */}
+                        {calculatedPrice > 0 && (
+                            <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    <span>POS Live Estimate</span>
+                                    <span className="text-primary">Summary</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 pt-1">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-muted-foreground">Price</span>
+                                        <span className="text-lg font-bold tabular-nums text-foreground">${calculatedPrice.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-muted-foreground">Est. COGS</span>
+                                        <span className="text-lg font-bold tabular-nums text-muted-foreground">${currentCOGS.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] text-muted-foreground">Profit Margin</span>
+                                        <span className="text-lg font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">
+                                            ${(calculatedPrice - currentCOGS).toFixed(2)}
+                                            <span className="text-xs ml-1 font-semibold">({calculatedPrice > 0 ? Math.round(((calculatedPrice - currentCOGS) / calculatedPrice) * 100) : 0}%)</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         </FieldGroup>
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-col justify-center items-center gap-3 px-4">
+                <CardFooter className="flex flex-col justify-center items-center gap-3 px-4 pt-2">
                     <Button
                         type="submit"
                         form="sales-form"
-                        variant="destructive"
-                    >Submit</Button>
-                    <Button variant="ghost" onClick={() => form.reset()}>Cancel</Button>
-                    <CardDescription>v0.2.0 | Made by Juansito with a LOT of love ❤️ ©2025</CardDescription>
+                        size="lg"
+                        className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md transition-transform active:scale-[0.99] cursor-pointer"
+                    >
+                        Complete & Record Sale
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => form.reset()} className="text-xs text-muted-foreground hover:text-foreground">Reset Form</Button>
+                    <CardDescription className="text-xs text-muted-foreground/70">v0.2.1 · Keystone Apparel System POS</CardDescription>
                 </CardFooter>
             </Card>
+            </div>
+            </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
@@ -1588,10 +1696,6 @@ export default function SalesRegister({ params }: Route.ComponentProps) {
                     Secret Feature
                 </Label>
             </div>
-
-            <footer className="flex flex-col my-4 w-full items-center ">
-                <a rel="noopener" target="_blank" href="https://www.juanzurita.dev">Juansito</a>
-            </footer>
-        </ThemeProvider>
+        </PageShell>
     )
 }

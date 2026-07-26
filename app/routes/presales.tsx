@@ -2,8 +2,8 @@ import * as React from "react"
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Route } from "./+types/presales"
 
-import { ThemeProvider } from "@/components/theme-provider"
-import { NavHeader } from "@/components/nav-header"
+import { PageShell } from "@/components/page-shell"
+import { StatSummaryCards } from "@/components/stat-summary-cards"
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from "@/components/ui/input"
-import { ChevronDown, ChartNoAxesCombined } from 'lucide-react'
+import { ChevronDown, ChartNoAxesCombined, DollarSign, Shirt, CheckCircle2 } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import type {
-    ColumnDef,
     ColumnFiltersState,
     SortingState,
     VisibilityState,
@@ -34,7 +33,6 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
@@ -48,15 +46,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
-import { presaleColumns, type Presale } from '@/components/table/presale-columns'
-import { DataTable } from '~/components/table/data-table'
+import { presaleColumns, completedPresaleColumns, type Presale } from '@/components/table/presale-columns'
+import { formatCurrency } from "@/lib/labels"
 import db from '@/lib/database'
-
-type PresaleFinancials = {
-    id: string
-    totalCOGS: string
-    totalUnearnedRevenue: string
-}
 
 export function meta({ }: Route.MetaArgs) {
     return [
@@ -150,23 +142,6 @@ export default function Presales({ params }: Route.ComponentProps) {
         [pendingPresales]
     )
 
-    const financials: PresaleFinancials = useMemo(() => ({
-        id: 'financials',
-        totalCOGS: `$${totalCOGS.toFixed(2)}`,
-        totalUnearnedRevenue: `$${unearnedRevenue.toFixed(2)}`,
-    }), [totalCOGS, unearnedRevenue])
-
-    const financialColumns = useMemo(() => [
-        {
-            accessorKey: "totalCOGS",
-            header: "Total Unused COGS",
-        },
-        {
-            accessorKey: "totalUnearnedRevenue",
-            header: "Total Unearned Revenue",
-        },
-    ], [])
-
     const loadData = useCallback(async () => {
         setLoading(true)
         const presalesData = await getPresalesData()
@@ -197,105 +172,10 @@ export default function Presales({ params }: Route.ComponentProps) {
         },
     })
 
-    // Simplified columns for completed presales (no checkboxes)
-    const completedColumns: ColumnDef<Presale>[] = useMemo(() => [
-        {
-            accessorKey: "created_at",
-            header: "Ordered Date",
-            cell: ({ row }) => {
-                const date = new Date(row.getValue("created_at"))
-                return date.toLocaleDateString()
-            },
-        },
-        {
-            accessorKey: "product_type",
-            header: "Type",
-            cell: ({ row }) => {
-                const typeMap: Record<string, string> = {
-                    tshirt: "T-Shirt",
-                    hoodie: "Hoodie",
-                    sticker: "Sticker",
-                }
-                const value = row.getValue("product_type") as string
-                return typeMap[value] || value
-            },
-        },
-        {
-            accessorKey: "design",
-            header: "Design",
-            cell: ({ row }) => {
-                const designMap: Record<string, string> = {
-                    "child-of-god": "Child of God",
-                    "doubt-not": "Doubt Not",
-                    "line-upon-line": "Line Upon Line",
-                    "death-has-no-sting": "Death has No Sting",
-                    "endure-to-the-end": "Endure to the End",
-                    "look-to-god": "Look to God",
-                    "hands-of-god": "Hands of God",
-                    "king-of-kings": "King of Kings",
-                    "walk-with-me": "Walk With Me",
-                    "feared-man-more-than-god": "Feared Man More than God",
-                    "love-like-he-did": "Love Like He Did",
-                }
-                const value = row.getValue("design") as string
-                return designMap[value] || value
-            },
-        },
-        {
-            accessorKey: "size",
-            header: "Size",
-            cell: ({ row }) => {
-                const sizeMap: Record<string, string> = {
-                    small: "S",
-                    medium: "M",
-                    large: "L",
-                    xl: "XL",
-                    xxl: "2XL",
-                    xxxl: "3XL",
-                    "one-size": "One Size",
-                }
-                const value = row.getValue("size") as string
-                return sizeMap[value] || value || "N/A"
-            },
-        },
-        {
-            accessorKey: "price",
-            header: "Price",
-            cell: ({ row }) => `$${row.getValue<number>("price").toFixed(2)}`,
-        },
-        {
-            accessorKey: "seller",
-            header: "Seller",
-            cell: ({ row }) => row.getValue("seller") || "N/A",
-        },
-        {
-            accessorKey: "notes",
-            header: "Notes",
-            cell: ({ row }) => {
-                const notes = row.getValue("notes") as string
-                return (
-                    <div className="max-w-full max-h-20 overflow-y-auto text-left">
-                        {notes || "-"}
-                    </div>
-                )
-            },
-        },
-        {
-            id: "completed_date",
-            header: "Completed Date",
-            cell: ({ row }) => {
-                // Use fulfilled_date (when presale was marked as sold)
-                const presale = row.original
-                const date = presale.fulfilled_date ? new Date(presale.fulfilled_date) : null
-                return date ? date.toLocaleDateString() : "N/A"
-            },
-        },
-    ], [])
-
     // Table for completed presales (simplified, no checkboxes)
     const completedTable = useReactTable({
         data: completedPresales,
-        columns: completedColumns,
+        columns: completedPresaleColumns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
     })
@@ -330,12 +210,34 @@ export default function Presales({ params }: Route.ComponentProps) {
         setSelectedIdsForSale([])
     }, [selectedIdsForSale, data, loadData])
 
+    const financialSummaryItems = [
+        {
+            label: "Unearned revenue",
+            value: formatCurrency(unearnedRevenue),
+            sublabel: `${pendingPresales.length} pending orders`,
+            icon: DollarSign,
+        },
+        {
+            label: "Unused COGS",
+            value: formatCurrency(totalCOGS),
+            sublabel: "Cost of pending inventory",
+            icon: Shirt,
+        },
+    ]
+
     return (
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <NavHeader />
-            <h1 className="text-2xl font-bold text-center my-4">Presales Management - DEMO version</h1>
-            
-            <Card className="my-1.5 p-4 w-[90%] mx-auto">
+        <PageShell
+            title="Presales Management"
+            badge="Demo · local storage"
+            description="Fulfill advance orders by marking them sold — they are copied into Sales automatically."
+        >
+            {pendingPresales.length > 0 && (
+                <div className="mb-6">
+                    <StatSummaryCards items={financialSummaryItems} />
+                </div>
+            )}
+
+            <Card className="border-border/60 bg-card/80 shadow-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         Pending Presales Orders
@@ -343,7 +245,7 @@ export default function Presales({ params }: Route.ComponentProps) {
                     <CardDescription>
                         View and manage pending presale orders. Select rows to mark them as sold.
                         <br />
-                        NOTE: This feature is under development, so please be patient with any bugs or issues.
+                        Select one or more rows, then mark them sold to move them into Sales.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className={`space-y-3 ${loading ? 'opacity-50' : ''}`}>
@@ -460,91 +362,6 @@ export default function Presales({ params }: Route.ComponentProps) {
             </Card>
 
             {/* Completed Presales Table */}
-            <Card className="my-4 p-4 w-[90%] mx-auto">
-                <CardHeader>
-                    <CardTitle>Completed Presales</CardTitle>
-                    <CardDescription>
-                        View presales that have been marked as sold ({completedPresales.length} items)
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className={`space-y-3 ${loading ? 'opacity-50' : ''}`}>
-                    <div className="overflow-hidden rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                {completedTable.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead key={header.id}>
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                </TableHead>
-                                            )
-                                        })}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {completedTable.getRowModel().rows?.length ? (
-                                    completedTable.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id}>
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={completedColumns.length}
-                                            className="h-24 text-center"
-                                        >
-                                            No completed presales found.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <CardDescription className="flex items-center">
-                        <ChartNoAxesCombined className="mr-2 h-4 w-4" />
-                        v0.2.0 | Made by Juansito with a LOT of love ❤️ ©2025
-                    </CardDescription>
-                </CardFooter>
-            </Card>
-
-            <Card className="my-4 p-4 w-[90%] mx-auto">
-                <CardHeader>
-                    <CardTitle>Financial Summary (Pending Presales Only)</CardTitle>
-                    <CardDescription>
-                        Total COGS and unearned revenue for items with status "Pending" ({pendingPresales.length} items)
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <DataTable columns={financialColumns} data={[financials]} />
-                </CardContent>
-                <CardFooter>
-                    <CardDescription className="flex items-center">
-                        <ChartNoAxesCombined className="mr-2 h-4 w-4" />
-                        v0.2.0 | Made by Juansito with a LOT of love ❤️ ©2025
-                    </CardDescription>
-                </CardFooter>
-            </Card>
-
-            <footer className="flex flex-col my-4 w-full items-center ">
-                <a rel="noopener" target="_blank" href="https://www.juanzurita.dev">Juansito</a>
-            </footer>
             
             {/* Confirmation dialog for marking presales as sold */}
             <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
@@ -581,6 +398,6 @@ export default function Presales({ params }: Route.ComponentProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </ThemeProvider>
+        </PageShell>
     )
 }
